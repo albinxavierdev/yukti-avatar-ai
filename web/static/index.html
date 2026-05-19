@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#070a12" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-title" content="Yukti" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
+  <title>Yukti — Bizfy Solution</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/static/css/styles.css" />
+  <link rel="stylesheet" href="/static/css/pwa.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
+        "talkinghead": "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1.4/modules/talkinghead.mjs"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div class="viewport">
+    <div class="main-stage">
+    <section class="avatar-stage" aria-label="3D assistant">
+      <div id="avatar3d" class="avatar-3d"></div>
+      <div class="avatar-loader" id="avatarLoader">
+        <div class="avatar-loader__spinner"></div>
+        <p id="avatarLoaderText">Loading 3D avatar…</p>
+      </div>
+    </section>
+
+    <div class="stage-controls">
+      <div class="ai-caption" id="aiCaption" hidden aria-live="polite">
+        <p class="ai-caption__text" id="aiCaptionText"></p>
+      </div>
+
+      <div class="status-bar" id="statusPill" data-state="idle" aria-live="polite">
+        <span class="status-bar__dot"></span>
+        <span id="statusText">Loading…</span>
+      </div>
+
+      <div class="voice-fab-wrap">
+        <div class="listen-ring" id="listenRing" hidden></div>
+        <button type="button" class="voice-fab" id="micBtn" title="Voice input" disabled aria-label="Voice input">
+          <svg viewBox="0 0 24 24" width="28" height="28" fill="currentColor" aria-hidden="true">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm5-3c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <button type="button" class="mobile-chat-fab" id="mobileChatFab" aria-label="Open chat" aria-expanded="false">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor" aria-hidden="true">
+        <path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H5.17L4 17.17V4h16v12z"/>
+      </svg>
+      <span class="mobile-chat-fab__label">Chat</span>
+    </button>
+
+    <button type="button" class="sidebar-backdrop" id="sidebarBackdrop" aria-label="Close chat" hidden></button>
+
+    <button type="button" class="sidebar-edge" id="sidebarToggle" aria-label="Open chat" aria-expanded="true">
+      <svg class="sidebar-edge__icon sidebar-edge__icon--open" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+        <path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/>
+      </svg>
+      <svg class="sidebar-edge__icon sidebar-edge__icon--closed" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+        <path d="M8.59 16.59L10 18l6-6-6-6-1.41 1.41L13.17 12z"/>
+      </svg>
+    </button>
+    </div>
+
+    <aside class="sidebar" id="sidebar" aria-label="Chat">
+      <header class="sidebar__header">
+        <button type="button" class="icon-btn" id="sidebarClose" aria-label="Collapse chat">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+        </button>
+        <h2 class="sidebar__title" id="sidebarTitle">Chat</h2>
+        <button type="button" class="icon-btn user-menu__btn" id="userMenuBtn" aria-label="Account" title="Account">
+          <img id="userAvatar" class="user-menu__avatar" alt="" width="28" height="28" hidden />
+          <svg id="userAvatarFallback" viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">
+            <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+          </svg>
+        </button>
+        <button type="button" class="icon-btn" id="settingsBtn" aria-label="Settings">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+            <path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/>
+          </svg>
+        </button>
+      </header>
+
+      <div class="sidebar__panel sidebar__panel--chat" id="chatPanel">
+        <div class="chat__log" id="chatLog">
+          <div class="msg msg--bot">
+            <p>Hi! I&apos;m Yukti. Tap the mic below or type here.</p>
+          </div>
+        </div>
+        <form class="composer" id="composer">
+          <input type="text" id="textInput" placeholder="Message…" autocomplete="off" maxlength="2000" disabled />
+          <button type="submit" class="btn-send" id="sendBtn" title="Send" disabled aria-label="Send">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+          </button>
+        </form>
+      </div>
+
+      <div class="sidebar__panel sidebar__panel--settings" id="settingsPanel" hidden>
+        <div class="settings__body">
+          <label class="field">
+            <span>TTS voice</span>
+            <select id="voiceSelect">
+              <option value="F1">Female 1</option>
+              <option value="F2" selected>Female 2</option>
+              <option value="F3">Female 3</option>
+              <option value="F4">Female 4</option>
+              <option value="F5">Female 5</option>
+              <option value="M1">Male 1</option>
+              <option value="M2">Male 2</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Language</span>
+            <select id="langSelect">
+              <option value="en">English</option>
+              <option value="hi">Hindi</option>
+              <option value="es">Spanish</option>
+              <option value="fr">French</option>
+              <option value="de">German</option>
+              <option value="ja">Japanese</option>
+              <option value="ko">Korean</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Avatar</span>
+            <select id="avatarModelSelect">
+              <option value="brunette" selected>Brunette</option>
+              <option value="vroid">Vroid</option>
+              <option value="avaturn">Avaturn</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Mood</span>
+            <select id="moodSelect">
+              <option value="neutral">Neutral</option>
+              <option value="happy">Happy</option>
+              <option value="sad">Sad</option>
+              <option value="angry">Angry</option>
+              <option value="love">Love</option>
+            </select>
+          </label>
+          <button type="button" class="btn-text" id="clearBtn" disabled>Clear chat</button>
+          <button type="button" class="btn-text" id="logoutBtn">Sign out</button>
+        </div>
+        <button type="button" class="btn-text settings__back" id="settingsBack">Back to chat</button>
+      </div>
+    </aside>
+  </div>
+
+  <div id="pwaInstallBanner" class="pwa-install" hidden>
+    <p class="pwa-install__text">Install Yukti on your home screen for quick access.</p>
+    <div class="pwa-install__actions">
+      <button type="button" class="pwa-install__btn pwa-install__btn--ghost" id="pwaInstallDismiss">Not now</button>
+      <button type="button" class="pwa-install__btn pwa-install__btn--primary" id="pwaInstallBtn">Install</button>
+    </div>
+  </div>
+
+  <script src="/static/js/pwa.js"></script>
+  <script type="module" src="/static/js/load-talkinghead.js"></script>
+  <script src="/static/js/talking-head.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

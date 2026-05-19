@@ -1,0 +1,13 @@
+.env
+data/
+benchmark_results.json
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+*.wav
+.DS_Store
+assets/hf/
+# Large TTS weights — run scripts/setup_assets.sh after clone
+assets/onnx/*.onnx
