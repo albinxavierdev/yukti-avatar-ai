@@ -1,5 +1,5 @@
-/* Yukti service worker — app shell cache + offline fallback */
-const CACHE_VERSION = "yukti-v1";
+/* Yukti service worker — app shell + preloaded 3D/vendor assets */
+const CACHE_VERSION = "yukti-v2";
 const SHELL_CACHE = `yukti-shell-${CACHE_VERSION}`;
 
 const SHELL_ASSETS = [
@@ -15,6 +15,12 @@ const SHELL_ASSETS = [
   "/manifest.webmanifest",
   "/static/icons/icon-192.png",
   "/static/icons/icon-512.png",
+  "/static/vendor/three@0.170.0/build/three.module.js",
+  "/static/vendor/talkinghead/modules/talkinghead.mjs",
+  "/static/vendor/talkinghead/modules/lipsync-en.mjs",
+  "/static/avatars/avaturn.glb",
+  "/static/avatars/brunette.glb",
+  "/static/avatars/vroid.glb",
 ];
 
 self.addEventListener("install", (event) => {

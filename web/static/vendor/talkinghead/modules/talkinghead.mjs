@@ -799,7 +799,7 @@ class TalkingHead {
     this.isSpeaking = false;
     this.isListening = false;
 
-    // Setup Google text-to-speech
+    // Cloud TTS (Google) — optional; Yukti uses speakAudio() with server-side Supertonic WAV only.
     if ( this.opt.ttsEndpoint ) {
       let audio = new Audio();
       if (audio.canPlayType("audio/ogg")) {
@@ -809,8 +809,6 @@ class TalkingHead {
       } else {
         throw new Error("There was no support for either OGG or MP3 audio.");
       }
-    } else {
-      throw new Error("You must provide some Google-compliant Text-To-Speech Endpoint.");
     }
 
 

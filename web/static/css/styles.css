@@ -9,7 +9,7 @@
   --accent-2: #a78bfa;
   --user-bg: rgba(167, 139, 250, 0.22);
   --bot-bg: rgba(34, 211, 238, 0.14);
-  --font: "DM Sans", system-ui, sans-serif;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
@@ -69,6 +69,11 @@ body.sidebar-collapsed {
   position: absolute;
   inset: 0;
   background: radial-gradient(ellipse 80% 60% at 50% 40%, #141c2e 0%, var(--bg) 70%);
+}
+
+/* Transparent when Three.js paints the 360° background inside the canvas */
+.avatar-stage.avatar-stage--3d-bg {
+  background: transparent;
 }
 
 .avatar-3d {

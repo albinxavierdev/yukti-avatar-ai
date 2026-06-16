@@ -1,3 +1,3 @@
-from yukti.tts.supertonic import LocalTTS
+from yukti.tts.bizfyvoice import BizfyVoiceTTS
 
-__all__ = ["LocalTTS"]
+__all__ = ["BizfyVoiceTTS"]

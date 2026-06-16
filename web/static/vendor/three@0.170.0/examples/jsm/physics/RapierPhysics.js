@@ -1,6 +1,6 @@
 import { Clock, Vector3, Quaternion, Matrix4 } from 'three';
 
-const RAPIER_PATH = 'https://cdn.skypack.dev/@dimforge/rapier3d-compat@0.12.0';
+const RAPIER_PATH = '/static/vendor/physics-unused/rapier3d-compat.js';
 
 const frameRate = 60;
 

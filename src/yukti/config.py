@@ -14,10 +14,14 @@ GROQ_WHISPER_MODEL = os.getenv("GROQ_WHISPER_MODEL", "whisper-large-v3-turbo")
 DATA_DIR = PROJECT_ROOT / "data"
 DATABASE_PATH = Path(os.getenv("DATABASE_PATH", str(DATA_DIR / "yukti.db")))
 
-# Bundled Supertonic assets (no external supertonic/ repo)
-ASSETS_ROOT = PROJECT_ROOT / "assets"
-TTS_ONNX_DIR = ASSETS_ROOT / "onnx"
-TTS_VOICES_DIR = ASSETS_ROOT / "voice_styles"
+# Remote TTS via bizfyvoice (sherpa-onnx Piper on voice.bizfylabs.com)
+BIZFY_VOICE_URL = os.getenv("BIZFY_VOICE_URL", "http://127.0.0.1:8000").rstrip("/")
+BIZFY_VOICE_API_KEY = os.getenv("BIZFY_VOICE_API_KEY", "bizfy-voice-2026")
+BIZFY_VOICE_SPEED = float(os.getenv("BIZFY_VOICE_SPEED", "1.08"))
+
+# Emit speech chunks earlier (clause / max length) so TTS starts before full sentences
+TTS_MIN_CHUNK_CHARS = int(os.getenv("TTS_MIN_CHUNK_CHARS", "1"))
+TTS_MAX_CHUNK_CHARS = int(os.getenv("TTS_MAX_CHUNK_CHARS", "40"))
 
 # Auth
 SECRET_KEY = os.getenv("SECRET_KEY", "change-me-in-production")
@@ -32,4 +36,10 @@ JWT_EXPIRE_DAYS = int(os.getenv("JWT_EXPIRE_DAYS", "30"))
 MEM0_DIR = Path(os.getenv("MEM0_DIR", str(DATA_DIR / "mem0")))
 
 # Chat history window sent to the LLM per request
-CHAT_HISTORY_LIMIT = int(os.getenv("CHAT_HISTORY_LIMIT", "20"))
+CHAT_HISTORY_LIMIT = int(os.getenv("CHAT_HISTORY_LIMIT", "10"))
+
+# Startup preload (runs before server accepts traffic)
+PRELOAD_TTS_WARMUP = os.getenv("PRELOAD_TTS_WARMUP", "1") == "1"
+PRELOAD_AVATARS = os.getenv("PRELOAD_AVATARS", "1") == "1"
+PRELOAD_VENDOR_ASSETS = os.getenv("PRELOAD_VENDOR_ASSETS", "1") == "1"
+DEFAULT_AVATAR = os.getenv("DEFAULT_AVATAR", "avaturn")

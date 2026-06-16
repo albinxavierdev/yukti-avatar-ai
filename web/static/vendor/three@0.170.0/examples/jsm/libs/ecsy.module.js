@@ -1775,7 +1775,7 @@ function enableRemoteDevtools(remoteId) {
 
   // Inject PeerJS script
   injectScript(
-    "https://cdn.jsdelivr.net/npm/peerjs@0.3.20/dist/peer.min.js",
+    "/static/vendor/networking-unused/peer.min.js",
     onLoaded
   );
 }

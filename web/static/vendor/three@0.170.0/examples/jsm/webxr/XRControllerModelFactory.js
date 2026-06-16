@@ -13,7 +13,8 @@ import {
 	MotionController
 } from '../libs/motion-controllers.module.js';
 
-const DEFAULT_PROFILES_PATH = 'https://cdn.jsdelivr.net/npm/@webxr-input-profiles/assets@1.0/dist/profiles';
+// WebXR not used by Yukti — local placeholder avoids accidental CDN fetch if this module is imported.
+const DEFAULT_PROFILES_PATH = '/static/vendor/webxr-profiles-unused/profiles';
 const DEFAULT_PROFILE = 'generic-trigger';
 
 class XRControllerModel extends Object3D {

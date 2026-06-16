@@ -22,6 +22,7 @@ const voiceSelect = document.getElementById("voiceSelect");
 const langSelect = document.getElementById("langSelect");
 const avatarModelSelect = document.getElementById("avatarModelSelect");
 const moodSelect = document.getElementById("moodSelect");
+const backgroundSelect = document.getElementById("backgroundSelect");
 const listenRing = document.getElementById("listenRing");
 const avatarLoader = document.getElementById("avatarLoader");
 const avatarLoaderText = document.getElementById("avatarLoaderText");
@@ -36,6 +37,19 @@ let currentUser = null;
 let busy = false;
 let recognition = null;
 let uiReady = false;
+const BG_STORAGE_KEY = "yukti-background";
+
+function restoreBackgroundSelect() {
+  const saved = localStorage.getItem(BG_STORAGE_KEY);
+  const id = saved && window.Avatar3D
+    ? Avatar3D._normalizeBackgroundId(saved)
+    : saved;
+  if (id && backgroundSelect.querySelector(`option[value="${id}"]`)) {
+    backgroundSelect.value = id;
+  }
+}
+
+restoreBackgroundSelect();
 let settingsOpen = false;
 let captionTimers = [];
 /** How long the on-avatar caption stays visible after TTS finishes. */
@@ -243,7 +257,9 @@ function showLiveCaption(text) {
 async function playReplyAudio(base64, replyText) {
   setStatus("speaking", "Speaking…");
   await unlockAudioFromGesture();
-  const { durationMs, done } = await avatar.speakBase64Wav(base64, replyText, "en");
+  const { durationMs, done } = await avatar.speakBase64Wav(base64, replyText, "en", {
+    interrupt: true,
+  });
   const captionPromise =
     durationMs > 0 ? streamAiCaption(replyText, durationMs) : hideAiCaption();
   await Promise.all([done, captionPromise]);
@@ -424,6 +440,7 @@ async function sendMessage(text) {
   setStatus("thinking", "Thinking…");
 
   streamingBotEl = null;
+  avatar?.stop();
 
   try {
     const data = await consumeChatStream(message);
@@ -464,7 +481,7 @@ function detectSpeechMode() {
 
 function micHelpMessage() {
   if (!window.isSecureContext) {
-    return "Microphone needs HTTPS. On your phone use https://YOUR-PC-IP:8765 (run scripts/run_web_https.sh) and accept the certificate warning.";
+    return "Microphone needs HTTPS. Open this site with https:// and allow the microphone when prompted.";
   }
   if (speechMode === "none") {
     return "Voice input is not supported in this browser. Use the text box.";
@@ -669,7 +686,7 @@ function initSpeech() {
     hint.className = "msg msg--bot";
     const p = document.createElement("p");
     p.innerHTML =
-      "<strong>Voice on phone:</strong> run <code>bash scripts/run_web_https.sh</code> on your PC, open the <code>https://…</code> URL on your phone, accept the certificate warning, then allow the microphone.";
+      "<strong>Voice on phone:</strong> open this app with <code>https://</code> (not http), accept the certificate warning if shown, then allow the microphone.";
     hint.appendChild(p);
     chatLog?.appendChild(hint);
   }
@@ -731,7 +748,13 @@ async function initAvatar() {
     avatar.onProgress = (msg) => {
       avatarLoaderText.textContent = msg;
     };
-    await avatar.init(avatarModelSelect.value || "brunette", moodSelect.value);
+    await avatar.init(avatarModelSelect.value || "avaturn", moodSelect.value);
+    void Avatar3D.preloadBackgrounds();
+    backgroundSelect.value = Avatar3D._normalizeBackgroundId(
+      localStorage.getItem(BG_STORAGE_KEY) || backgroundSelect.value || "default"
+    );
+    await avatar.setBackground(backgroundSelect.value);
+    void Avatar3D.preloadAllAvatars();
     avatarLoader.classList.add("avatar-loader--hidden");
     setStatus("idle", "Ready");
     setUiEnabled(true);
@@ -786,7 +809,7 @@ avatarModelSelect.addEventListener("change", async () => {
   avatarLoader.classList.remove("avatar-loader--hidden");
   avatarLoaderText.textContent = "Switching avatar…";
   try {
-    await avatar.loadAvatar(avatarModelSelect.value || "brunette", moodSelect.value);
+    await avatar.loadAvatar(avatarModelSelect.value || "avaturn", moodSelect.value);
   } catch (e) {
     appendMessage(`Avatar switch failed: ${e.message}`, "error");
   }
@@ -795,6 +818,10 @@ avatarModelSelect.addEventListener("change", async () => {
 
 moodSelect.addEventListener("change", () => {
   avatar?.setMood(moodSelect.value);
+});
+
+backgroundSelect.addEventListener("change", () => {
+  void avatar?.setBackground(backgroundSelect.value);
 });
 
 langSelect.addEventListener("change", updateRecognitionLang);
@@ -826,11 +853,15 @@ if (window.visualViewport) {
   });
 }
 
-document.addEventListener(
-  "pointerdown",
-  () => unlockAudioFromGesture(),
-  { once: true, capture: true }
-);
+function bindAudioUnlock() {
+  const unlock = () => {
+    void unlockAudioFromGesture();
+  };
+  document.addEventListener("pointerdown", unlock, { capture: true });
+  document.addEventListener("keydown", unlock, { once: true, capture: true });
+}
+
+bindAudioUnlock();
 
 document.getElementById("logoutBtn")?.addEventListener("click", async () => {
   await fetch("/auth/logout", { method: "POST", ...fetchOpts });

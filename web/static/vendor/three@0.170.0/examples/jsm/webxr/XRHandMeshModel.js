@@ -1,6 +1,6 @@
 import { GLTFLoader } from '../loaders/GLTFLoader.js';
 
-const DEFAULT_HAND_PROFILE_PATH = 'https://cdn.jsdelivr.net/npm/@webxr-input-profiles/assets@1.0/dist/profiles/generic-hand/';
+const DEFAULT_HAND_PROFILE_PATH = '/static/vendor/webxr-profiles-unused/profiles/generic-hand/';
 
 class XRHandMeshModel {
 

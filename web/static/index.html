@@ -11,17 +11,17 @@
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/static/icons/icon-192.png" />
   <title>Yukti — Bizfy Solution</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/static/css/styles.css" />
   <link rel="stylesheet" href="/static/css/pwa.css" />
+  <link rel="modulepreload" href="/static/vendor/three@0.170.0/build/three.module.js" />
+  <link rel="modulepreload" href="/static/vendor/talkinghead/modules/talkinghead.mjs" />
+  <link rel="preload" href="/static/avatars/avaturn.glb" as="fetch" crossorigin="anonymous" />
   <script type="importmap">
     {
       "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
-        "talkinghead": "https://cdn.jsdelivr.net/gh/met4citizen/TalkingHead@1.4/modules/talkinghead.mjs"
+        "three": "/static/vendor/three@0.170.0/build/three.module.js",
+        "three/addons/": "/static/vendor/three@0.170.0/examples/jsm/",
+        "talkinghead": "/static/vendor/talkinghead/modules/talkinghead.mjs"
       }
     }
   </script>
@@ -114,13 +114,7 @@
           <label class="field">
             <span>TTS voice</span>
             <select id="voiceSelect">
-              <option value="F1">Female 1</option>
-              <option value="F2" selected>Female 2</option>
-              <option value="F3">Female 3</option>
-              <option value="F4">Female 4</option>
-              <option value="F5">Female 5</option>
-              <option value="M1">Male 1</option>
-              <option value="M2">Male 2</option>
+              <option value="amy" selected>Amy (English)</option>
             </select>
           </label>
           <label class="field">
@@ -136,11 +130,20 @@
             </select>
           </label>
           <label class="field">
+            <span>Background</span>
+            <select id="backgroundSelect">
+              <option value="default" selected>Default (gradient)</option>
+              <option value="studio">Photo studio</option>
+              <option value="office">Office room</option>
+              <option value="outdoor">Outdoor park</option>
+            </select>
+          </label>
+          <label class="field">
             <span>Avatar</span>
             <select id="avatarModelSelect">
-              <option value="brunette" selected>Brunette</option>
+              <option value="brunette">Brunette</option>
               <option value="vroid">Vroid</option>
-              <option value="avaturn">Avaturn</option>
+              <option value="avaturn" selected>Avaturn</option>
             </select>
           </label>
           <label class="field">
@@ -169,9 +172,9 @@
     </div>
   </div>
 
-  <script src="/static/js/pwa.js"></script>
-  <script type="module" src="/static/js/load-talkinghead.js"></script>
-  <script src="/static/js/talking-head.js"></script>
-  <script src="/static/js/app.js"></script>
+  <script src="/static/js/pwa.js?v=8"></script>
+  <script type="module" src="/static/js/load-talkinghead.js?v=8"></script>
+  <script src="/static/js/talking-head.js?v=8"></script>
+  <script src="/static/js/app.js?v=8"></script>
 </body>
 </html>

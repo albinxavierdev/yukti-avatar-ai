@@ -1,6 +1,6 @@
 # yukti-avatar-ai
 
-Voice assistant by Bizfy Solution (Yukti) — 3D avatar, Groq LLM, local TTS (Supertonic), streaming replies, SQLite chat history, and Mem0 long-term memory.
+Voice assistant by Bizfy Solution (Yukti) — 3D avatar, Groq LLM, remote TTS via [bizfyvoice](https://voice.bizfylabs.com), streaming replies, SQLite chat history, and Mem0 long-term memory.
 
 ## Quick start (local)
 
@@ -36,6 +36,9 @@ Optional for Google sign-in:
 | `GOOGLE_CLIENT_ID` / `GOOGLE_CLIENT_SECRET` | Production login |
 | `DATABASE_PATH` | SQLite file (default `data/yukti.db`) |
 | `MEM0_DIR` | Mem0 vector store (default `data/mem0`) |
+| `BIZFY_VOICE_URL` | bizfyvoice API base (default `http://127.0.0.1:8000`) |
+| `BIZFY_VOICE_API_KEY` | `X-Api-Key` for `/tts` |
+| `BIZFY_VOICE_SPEED` | Piper speech rate (default `1.0`) |
 
 Copy `.env.example` if you start fresh.
 
@@ -45,7 +48,6 @@ Copy `.env.example` if you start fresh.
 |--------|-------------|
 | `scripts/setup_local.sh` | Full local setup |
 | `scripts/run_web.sh` | Start API + UI on port 8765 |
-| `scripts/setup_assets.sh` | Download Supertonic ONNX models |
 | `scripts/vendor_frontend.sh` | Download Three.js + TalkingHead |
 | `scripts/benchmark_latency.sh` | Compare batch vs streaming latency |
 | `scripts/test_groq.py` | Test Groq API key |
@@ -56,7 +58,7 @@ Copy `.env.example` if you start fresh.
 - **API** — FastAPI (`src/yukti/api/`)
 - **LLM** — LangChain + Groq
 - **Memory** — SQLite (per-session messages) + Mem0 (per-user long-term)
-- **TTS** — Supertonic ONNX (local CPU)
+- **TTS** — bizfyvoice API (sherpa-onnx Piper, remote)
 - **Auth** — Google OAuth + JWT cookie
 
 ## Google login (when ready)

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import asyncio
+import threading
 from functools import lru_cache
 
 from yukti.db.repository import ChatRepository, User
@@ -37,7 +39,11 @@ class ConversationService:
             message, hist, memory_context=mem_ctx
         )
         self._db.append_turn(session_id, message, reply)
-        self._mem0.add_turn(user.id, message, reply)
+        threading.Thread(
+            target=self._mem0.add_turn,
+            args=(user.id, message, reply),
+            daemon=True,
+        ).start()
         return reply, new_history
 
     async def stream(
@@ -48,8 +54,14 @@ class ConversationService:
         message: str,
         history: list[dict] | None = None,
     ):
-        hist = history if history is not None else self.load_history(session_id)
-        mem_ctx = self.memory_context(user, message)
+        if history is not None:
+            mem_ctx = await asyncio.to_thread(self.memory_context, user, message)
+            hist = history
+        else:
+            hist, mem_ctx = await asyncio.gather(
+                asyncio.to_thread(self.load_history, session_id),
+                asyncio.to_thread(self.memory_context, user, message),
+            )
         async for delta in langchain_groq.chat_stream(
             message, hist, memory_context=mem_ctx
         ):
@@ -59,7 +71,11 @@ class ConversationService:
         self, session_id: str, user: User, user_message: str, assistant_message: str
     ) -> list[dict]:
         new_history = self._db.append_turn(session_id, user_message, assistant_message)
-        self._mem0.add_turn(user.id, user_message, assistant_message)
+        threading.Thread(
+            target=self._mem0.add_turn,
+            args=(user.id, user_message, assistant_message),
+            daemon=True,
+        ).start()
         return new_history
 
     def clear_session(self, session_id: str, user: User) -> None:

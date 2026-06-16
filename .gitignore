@@ -9,5 +9,3 @@ __pycache__/
 *.wav
 .DS_Store
 assets/hf/
-# Large TTS weights — run scripts/setup_assets.sh after clone
-assets/onnx/*.onnx

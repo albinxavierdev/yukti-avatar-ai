@@ -7,13 +7,19 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import FileResponse, RedirectResponse
+from fastapi.responses import FileResponse, JSONResponse, RedirectResponse
 from fastapi.sse import EventSourceResponse
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.sessions import SessionMiddleware
 
 from yukti.api.auth_routes import router as auth_router
 from yukti.api.chat_pipeline import run_batch_turn, stream_chat_events
+from yukti.api.preload import (
+    avatar_response,
+    get_preload_status,
+    run_startup_preload,
+    vendor_response,
+)
 from yukti.api.schemas import ChatRequest, ChatResponse, SessionListResponse
 from yukti.auth.deps import get_optional_user, require_user
 from yukti.config import AUTH_DISABLED, ENV_FILE, SECRET_KEY, STATIC_DIR, WEB_ROOT
@@ -21,29 +27,41 @@ from yukti.db.repository import ChatRepository, User
 from yukti.db.schema import init_db
 from yukti.llm import groq as groq_llm
 from yukti.services.conversation import get_conversation_service
-from yukti.tts import LocalTTS
+from yukti.tts import BizfyVoiceTTS
+from yukti.tts.bizfyvoice import map_voice
 
 MAX_TRANSCRIBE_BYTES = 12 * 1024 * 1024
 
 load_dotenv(ENV_FILE)
 
-_tts_cache: dict[str, LocalTTS] = {}
+_tts: BizfyVoiceTTS | None = None
 _repo = ChatRepository()
 _conv = get_conversation_service()
 
 
-def get_tts(voice: str, lang: str) -> LocalTTS:
-    key = f"{voice}:{lang}"
-    if key not in _tts_cache:
-        _tts_cache[key] = LocalTTS(voice=voice, lang=lang)
-    return _tts_cache[key]
+def get_tts(voice: str, lang: str) -> BizfyVoiceTTS:
+    """Return a shared bizfyvoice TTS client (lightweight HTTP, no local models)."""
+    global _tts
+    mapped = map_voice(voice)
+    if _tts is None:
+        _tts = BizfyVoiceTTS(voice=mapped, lang=lang)
+    else:
+        _tts.voice = mapped
+        _tts.lang = lang
+    return _tts
+
+
+def _mem0_warmup() -> None:
+    from yukti.auth import deps as auth_deps
+
+    user = auth_deps._dev_user_record()
+    _conv.memory_context(user, "warmup")
 
 
 @asynccontextmanager
 async def lifespan(_app: FastAPI):
     init_db()
-    print("Preloading TTS (F2, en)…")
-    get_tts("F2", "en")
+    run_startup_preload(get_tts, mem0_warmup=_mem0_warmup if _conv._mem0.enabled else None)
     mem0 = _conv._mem0
     if mem0.enabled:
         print("Mem0 long-term memory: enabled")
@@ -99,6 +117,37 @@ async def index(user: User | None = Depends(get_optional_user)):
     if user is None and not AUTH_DISABLED:
         return RedirectResponse(url="/login")
     return FileResponse(STATIC_DIR / "index.html")
+
+
+@app.get("/api/ready")
+async def api_ready():
+    """Preload status — models warmed at startup."""
+    return JSONResponse(get_preload_status())
+
+
+@app.get("/static/avatars/{filename}")
+async def static_avatar_cached(filename: str):
+    """Preloaded GLB avatars (RAM); falls through to disk via 404 if missing."""
+    resp = avatar_response(filename)
+    if resp is None:
+        path = STATIC_DIR / "avatars" / filename
+        if path.is_file():
+            return FileResponse(path, media_type="model/gltf-binary")
+        raise HTTPException(status_code=404, detail="Avatar not found")
+    return resp
+
+
+@app.get("/static/vendor/{vendor_path:path}")
+async def static_vendor_cached(vendor_path: str):
+    """Preloaded Three.js / TalkingHead modules when configured."""
+    rel = f"vendor/{vendor_path}"
+    resp = vendor_response(rel)
+    if resp is None:
+        path = STATIC_DIR / rel
+        if path.is_file():
+            return FileResponse(path)
+        raise HTTPException(status_code=404)
+    return resp
 
 
 @app.get("/api/avatars")
@@ -224,4 +273,5 @@ async def api_reset(session_id: str, user: User = Depends(require_user)):
     return {"ok": True}
 
 
+# Remaining /static/* (avatars + key vendor paths use dedicated cached routes above)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
